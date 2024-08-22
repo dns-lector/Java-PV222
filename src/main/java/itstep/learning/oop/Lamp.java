@@ -37,4 +37,9 @@ public class Lamp
     public void test() {
         System.out.println("Testing: " + getCard());
     }
+
+    @Works("as lamp")
+    public void shine() {
+        System.out.println("Working on: " + getCard());
+    }
 }

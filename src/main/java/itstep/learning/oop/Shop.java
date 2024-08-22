@@ -1,5 +1,7 @@
 package itstep.learning.oop;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +20,8 @@ public class Shop {
         printManualProducts();
         System.out.println("-----------------NON-MANUAL----------------------");
         printNonManualProducts();
+        System.out.println("-----------------WORKS----------------------");
+        showWorks();
     }
 
     private void printManualProducts() {
@@ -38,7 +42,32 @@ public class Shop {
 
     private void printProducts() {
         for (Product product : products) {
-            System.out.println( product.getCard() );
+            if(product instanceof Testable) {
+                ((Testable) product).test();
+            }
+            else {
+                System.out.println( product.getCard() );
+            }
+        }
+    }
+
+    private void showWorks() {
+        for (Product product : products) {
+            // Дістатись методу, що помічений анотацією @Works та виконати його
+            for( Method method : product.getClass().getDeclaredMethods() ) {
+                if( method.isAnnotationPresent( Works.class ) ) {
+
+                    System.out.print( method.getAnnotation(Works.class).value() + " ");
+
+                    method.setAccessible(true);   // даємо дозвіл на доступ
+                    try {
+                        method.invoke( product );   // product.method()
+                    }
+                    catch (IllegalAccessException | InvocationTargetException ex) {
+                        System.err.println( ex.getMessage() );
+                    }
+                }
+            }
         }
     }
 }
@@ -67,5 +96,11 @@ Accumulator (manufacturer, capacity)
 Інтерфейси - класи (типи) які містять тільки абстрактні тільки публічні тільки методи
 - контракти
 - маркери
+= анотації (як у C# - атрибути)
 
+Д.З. Додати анотацію Warranty("N") де N - кількість років гарантії
+помітити даною анотацією класи-продукти, зазначивши різні числа
+При виводі товарів додати відомості
+а) про наявність гарантії
+б) про термін гарантії
 */

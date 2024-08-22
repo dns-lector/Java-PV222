@@ -29,4 +29,9 @@ public class Pump
     public void setProductivity( int productivity ) {
         this.productivity = productivity;
     }
+
+    @Works("as pump")
+    public void pump() {
+        System.out.println("Working on: " + getCard());
+    }
 }
