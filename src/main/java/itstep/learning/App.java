@@ -1,6 +1,8 @@
 package itstep.learning;
 
 import com.google.inject.Guice;
+import itstep.learning.db.DbDemo;
+import itstep.learning.ioc.DbModule;
 import itstep.learning.ioc.IocDemo;
 import itstep.learning.ioc.ServicesModule;
 import itstep.learning.oop.Shop;
@@ -18,8 +20,12 @@ public class App
         // new Shop().run();
         // new IocDemo( new Md5HashService() ).run();
         Guice
-            .createInjector( new ServicesModule() )   // Configuration
-            .getInstance( IocDemo.class )             // Resolve
+            .createInjector(                   // Configuration
+                    new ServicesModule(),      // Модулів може бути декілька,
+                    new DbModule()             // розділяють за задачами
+            )
+            // .getInstance( IocDemo.class )             // Resolve
+            .getInstance( DbDemo.class )
             .run();
     }
 }
