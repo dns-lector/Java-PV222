@@ -2,6 +2,7 @@ package itstep.learning;
 
 import com.google.inject.Guice;
 import itstep.learning.db.DbDemo;
+import itstep.learning.fs.FileDemo;
 import itstep.learning.ioc.DbModule;
 import itstep.learning.ioc.IocDemo;
 import itstep.learning.ioc.ServicesModule;
@@ -25,7 +26,8 @@ public class App
                     new DbModule()             // розділяють за задачами
             )
             // .getInstance( IocDemo.class )             // Resolve
-            .getInstance( DbDemo.class )
+            // .getInstance( DbDemo.class )
+            .getInstance( FileDemo.class )
             .run();
     }
 }
