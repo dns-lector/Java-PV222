@@ -1,6 +1,7 @@
 package itstep.learning;
 
 import com.google.inject.Guice;
+import itstep.learning.async.AsyncDemo;
 import itstep.learning.db.DbDemo;
 import itstep.learning.fs.FileDemo;
 import itstep.learning.ioc.DbModule;
@@ -27,7 +28,8 @@ public class App
             )
             // .getInstance( IocDemo.class )             // Resolve
             // .getInstance( DbDemo.class )
-            .getInstance( FileDemo.class )
+            // .getInstance( FileDemo.class )
+            .getInstance( AsyncDemo.class )
             .run();
     }
 }
