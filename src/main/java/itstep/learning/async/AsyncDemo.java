@@ -1,13 +1,86 @@
 package itstep.learning.async;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class AsyncDemo {
+    private final ExecutorService pool = Executors.newFixedThreadPool(3);
+
     public void run() {
-        percentDemo();
+        // percentDemo();
         taskDemo();
     }
+
+    private void taskDemo() {
+        // перша відмінність задач - наявність їх виконавця (pool)
+        // друге - функціональний інтерфейс Callable, який повертає значення
+        Callable<String> callable = new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                try{ TimeUnit.MILLISECONDS.sleep(500);}
+                catch (InterruptedException ignore) {}
+                return "Callable data";
+            }
+        };
+        Callable<String> callable2 = () -> {
+            try{ TimeUnit.MILLISECONDS.sleep(500);}
+            catch (InterruptedException ignore) {}
+            return "Callable2 data";
+        };
+        // Future - об'єкт мови програмування, що відповідає за
+        // задачі (C# - Task, JS - Promise, Python - Coroutine)
+        Future<String> task1 = pool.submit( callable );   // submit стартує виконання задачі
+        Future<String> task2 = pool.submit( callable2 );
+        Future<Double> task3 = pool.submit( () -> getPercent(1) );
+        try {
+            String res1 = task1.get();   // .join() + return  ~~ await task1
+            System.out.println(res1);
+            String res2 = task2.get();
+            System.out.println(res2);
+            double res3 = task3.get();
+            System.out.println(res3);
+
+            sum = 100.0;
+            Future<Double>[] tasks = new Future[12];
+            for (int i = 1; i <= 12; i++) {
+                tasks[i-1] = pool.submit( new PercentCallable(i) );
+            }
+            for (int i = 1; i <= 12; i++) {
+                // ~ await asyncTask()  -- запускаємо і тут же чекаємо
+                double percent = tasks[i-1].get();
+                double factor = 1.0 + percent / 100.0;
+                sum = sum * factor;
+                System.out.printf( "month: %d, sum: %.2f\n", i, sum );
+            }
+
+        }
+        catch (InterruptedException | ExecutionException e) {
+            System.err.println( e.getClass().getSimpleName() + ": " + e.getMessage() );
+        }
+
+
+        // третє - програма не завершується поки не зупиниться пул потоків.
+        pool.shutdown();   // припиняємо прийом нових задач
+        try { pool.awaitTermination(15000, TimeUnit.MILLISECONDS); }  // даємо час на завершення наявних задач
+        catch (InterruptedException ignore) {}
+        pool.shutdownNow();  // примусово скасовуємо всі задачі, що залишились
+    }
+
+    class PercentCallable implements Callable<Double> {
+        private final int month;
+        public PercentCallable(int month) {
+            this.month = month;
+        }
+        @Override
+        public Double call() throws Exception {
+            double percent = getPercent(month);
+            // double factor = 1.0 + percent / 100.0;
+            // sum = sum * factor;
+            // System.out.printf( "month: %d, sum: %.2f\n", month, sum );
+            return percent;
+        }
+    }
+
 
     private double sum ;
     private final Object sumLocker = new Object();
@@ -60,7 +133,7 @@ public class AsyncDemo {
 
     private double getPercent(int month) {
         try {
-            TimeUnit.MILLISECONDS.sleep(300);
+            TimeUnit.MILLISECONDS.sleep(1000);
         }
         catch (InterruptedException ignore) { }
         return 10.0;
@@ -94,10 +167,6 @@ public class AsyncDemo {
         System.out.println("Hello from Main");
     }
 
-
-    private void taskDemo() {
-
-    }
 }
 /*
 Асинхронне програмування
@@ -116,6 +185,25 @@ public class AsyncDemo {
 - багатопроцесність (---//--- за наявності відмінностей між потоком та процесом)
 - мережні технології (grid-, network-), у т.ч. хмарні технології
 
+Недоліки багатопоточності
+- системні (некеровані) ресурси
+- складнощі з поверненням значень, особливо комплексних
+- однакова пріоритетність потоків - немає головного
+   (завершення main не гарантовано призводить до завершення програми)
+- локалізація винятків (Exception) - вони не "виходять" з потоку.
+
+Багатозадачність - використання об'єктів мови програмування,
+які можуть як приймати, так і повертати значення, а також мають
+керований пріоритет
+
+
+
+
+
+
+
+
+
 "Інфляція" - за відомими показниками місячних коефіцієнтів інфляції
 порахувати річне значення.
 Мат.обгрунтування: чи однаковий результат операцій
@@ -124,8 +212,17 @@ public class AsyncDemo {
 можливість "переставляння" - ідеально для асинхронності - немає різниці
 у якій послідовності будуть враховані 12 місячних коефіцієнтів
 
+Розв'язати попереднє ДЗ засобами багатозадачності:
+
 Pandigital - число, яке складається з усіх цифр (0-9), кожна один раз
 Задача: написати генератор Pandigital чисел на базі багатопоточності:
  кожен потік дописує одну цифру до спільного "буфера", що в решті стає числом
 Забезпечити виведення підсумкового числа
+
+A {                  B {
+ a() {                 b() {
+  int x; ----------------->sout()
+  new B()
+ }                     }
+}                    }
  */
